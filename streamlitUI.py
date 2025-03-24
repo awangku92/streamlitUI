@@ -1,18 +1,30 @@
 import streamlit as st
+import requests
+
+# FastAPI Backend URL
+API_URL = "http://localhost:7860/chat/"
 
 # Basic Streamlit app setup
-st.set_page_config(page_title="Chatbot", page_icon="💬", layout="wide")
+st.set_page_config(page_title="Dr. Pokok", page_icon="🌱", layout="centered")
 
 # Session state for chat history
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hi! How can I assist you today?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Hi! Apa yg boleh saya bantu hari ini?"}]
 
 # Sidebar for instructions or settings
-st.sidebar.header("Chatbot App")
-st.sidebar.write("This is a sample chatbot app using Streamlit. The backend service is simulated for now.")
+st.sidebar.header("🌱 Dr. Pokok")
+st.sidebar.write('''Dr. Pokok adalah chatbot kederdasan buatan (AI) yang menggunakan Penjanaan Dipertingkatkan Semula (RAG).''')
+st.sidebar.write("Dr. Pokok adalah pakar dalam sayur-sayuran taman & tumbuhan dalam rumah.")
+st.sidebar.write('''Dr. Pokok mempunyai pengetahuan dalam:\n
+* Nama saintifik & biasa bagi tumbuhan
+* Nasihat penjagaan & penanaman
+* Cadangan tanaman pengiring
+* Panduan penjagaan harian''')
 
-# Display chat messages
-st.title("Chatbot 💬")
+
+st.title("🌱 Dr. Pokok - Pakar Pokok Anda")
+
+# Display chat messages history
 for msg in st.session_state.messages:
     if msg["role"] == "user":
         st.chat_message("user").markdown(msg["content"])
@@ -20,18 +32,21 @@ for msg in st.session_state.messages:
         st.chat_message("assistant").markdown(msg["content"])
 
 # Input box for user input
-if user_input := st.chat_input("Type your message"):
+if user_input := st.chat_input("Tanya Dr. Pokok..."):
     # Add user message to the session state
     st.session_state.messages.append({"role": "user", "content": user_input})
+    st.chat_message("user").markdown(user_input)
 
     # Simulate a backend API call
-    with st.spinner("Thinking..."):
-        # Mock API response (replace this later with your FastAPI + Ollama integration)
-        mock_response = {
-            "role": "assistant",
-            "content": f"Simulated response to: '{user_input}'"
-        }
+    with st.spinner("Sedang berfikir...", show_time=True):
+        try:
+            response = requests.post(API_URL, headers={"text": user_input})
+            # print(response.json())
+            bot_response = response.json().get("response", "Maaf, saya tidak faham.")
+        except Exception as e:
+            print(e)
+            bot_response = "⚠️ Ralat: Tidak dapat berhubung dengan API. " + str(e)  
 
     # Add simulated assistant message to the session state
-    st.session_state.messages.append(mock_response)
-    st.chat_message("assistant").markdown(mock_response["content"])
+    st.session_state.messages.append(bot_response)
+    st.chat_message("assistant").markdown(bot_response)
